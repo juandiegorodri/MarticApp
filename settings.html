@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Configuración</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        html, body { height: 100%; margin: 0; padding: 0; font-family: 'Inter', sans-serif; overflow: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        .view { display: none; height: 100%; width: 100%; }
+        .view.active { display: flex; }
+        
+        :root { --primary-color: #4f46e5; }
+        .form-input, .form-textarea, .form-select { margin-top: .25rem; display: block; width: 100%; border-radius: .375rem; border: 1px solid #D1D5DB; padding: .5rem; background-color: #fff; transition: border-color 0.2s; }
+        .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--primary-color); outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px var(--primary-color); }
+        .form-textarea { min-height: 100px; font-family: monospace; font-size: 0.9em; }
+        .form-label { display: block; font-size: .875rem; font-weight: 500; color: #374151; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; transition: all 0.2s; border: 1px solid transparent; cursor: pointer; }
+        .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.875rem; }
+        .btn-primary { background-color: var(--primary-color); color: #fff; }
+        .btn-primary:hover { background-color: #4338ca; }
+        .btn-secondary { background-color: #e5e7eb; color: #374151; border-color: #d1d5db; }
+        .btn-secondary:hover { background-color: #d1d5db; }
+        .btn-danger { background-color: #fee2e2; color: #b91c1c; }
+        .btn-danger:hover { background-color: #fecaca; }
+        .tab-button { display: flex; align-items: center; width: 100%; padding: 0.75rem 1rem; font-weight: 500; color: #374151; border-radius: 0.375rem; transition: all 0.2s; border-left: 3px solid transparent; background: none; text-align: left;}
+        .tab-button:hover { background-color: #f3f4f6; }
+        .tab-button.active { font-weight: 600; color: var(--primary-color); background-color: #eef2ff; border-left-color: var(--primary-color); }
+        .tab-button i { margin-right: 0.75rem; font-size: 1.25rem; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .save-bar { transform: translateY(150%); transition: transform 0.3s ease-in-out; }
+        .save-bar.visible { transform: translateY(0); }
+        .form-radio-label { display: flex; align-items: center; cursor: pointer; padding: 0.5rem; border-radius: 0.375rem; transition: background-color 0.2s; }
+        .form-radio-label:hover { background-color: #f9fafb; }
+        .form-radio-label input { margin-right: 0.5rem; }
+        .onboarding-step { display: none; }
+        .onboarding-step.active { display: block; }
+
+        /* Dropdown Styles */
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content { display: none; position: absolute; right: 0; background-color: #f9f9f9; min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; border-radius: .375rem; }
+        .dropdown-content button { color: black; padding: 12px 16px; text-decoration: none; display: block; width: 100%; text-align: left; background: none; border: none; cursor: pointer; }
+        .dropdown-content button:hover { background-color: #f1f1f1; }
+        .dropdown:hover .dropdown-content { display: block; }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Vista de Onboarding / Bienvenida -->
+    <div id="onboarding-view" class="view fixed inset-0 bg-gray-900 bg-opacity-75 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl transform transition-all">
+            <!-- Paso 1: Bienvenida -->
+            <div id="onboarding-step-1" class="onboarding-step active p-8 text-center">
+                <i class="ph-bold ph-rocket-launch text-6xl text-indigo-500 mx-auto"></i>
+                <h2 class="text-3xl font-bold text-gray-800 mt-4">¡Bienvenido a MarticApp!</h2>
+                <p class="text-gray-600 mt-2">Estamos aquí para ayudarte a hacer tus procesos de redacción mucho más eficientes. Empecemos.</p>
+                <div class="mt-8">
+                    <button id="onboarding-start-btn" class="btn btn-primary btn-lg">Comenzar Configuración</button>
+                </div>
+            </div>
+            <!-- Paso 2: Atajos -->
+            <div id="onboarding-step-2" class="onboarding-step p-8">
+                <h3 class="text-2xl font-bold text-gray-800">Configura tus Atajos</h3>
+                <p class="text-gray-600 mt-1">MarticApp funciona con dos acciones principales. Define una combinación de teclas para cada una.</p>
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-4 bg-gray-50 rounded-lg border">
+                        <label class="form-label font-semibold">Transcripción Directa</label>
+                        <p class="text-xs text-gray-500">Graba tu voz y la convierte en texto.</p>
+                        <button id="onboarding-hotkey-transcribe" class="form-input text-left font-mono mt-2"></button>
+                    </div>
+                    <div class="p-4 bg-gray-50 rounded-lg border">
+                        <label class="form-label font-semibold">Procesamiento de Texto</label>
+                        <p class="text-xs text-gray-500">Da una instrucción de voz para procesar texto.</p>
+                        <button id="onboarding-hotkey-process" class="form-input text-left font-mono mt-2"></button>
+                    </div>
+                </div>
+                <p class="text-xs text-center mt-4 text-gray-500">Puedes cambiarlos más tarde en la configuración.</p>
+                <div class="mt-8 flex justify-between items-center">
+                    <button class="btn btn-secondary onboarding-back-btn" data-target="1">Atrás</button>
+                    <button class="btn btn-primary onboarding-next-btn" data-target="3">Siguiente</button>
+                </div>
+            </div>
+            <!-- Paso 3: Posición del Micrófono -->
+            <div id="onboarding-step-3" class="onboarding-step p-8">
+                <h3 class="text-2xl font-bold text-gray-800">Posición del Micrófono</h3>
+                <p class="text-gray-600 mt-1">Elige en qué esquina de la pantalla prefieres que aparezca el ícono flotante de MarticApp.</p>
+                <div class="mt-6 grid grid-cols-2 gap-4">
+                    <label class="form-radio-label border rounded-lg p-4 justify-center flex-col"><input type="radio" name="onboarding-icon-position" value="top-left"><span>Superior Izquierda</span></label>
+                    <label class="form-radio-label border rounded-lg p-4 justify-center flex-col"><input type="radio" name="onboarding-icon-position" value="top-right"><span>Superior Derecha</span></label>
+                    <label class="form-radio-label border rounded-lg p-4 justify-center flex-col"><input type="radio" name="onboarding-icon-position" value="bottom-left"><span>Inferior Izquierda</span></label>
+                    <label class="form-radio-label border rounded-lg p-4 justify-center flex-col"><input type="radio" name="onboarding-icon-position" value="bottom-right"><span>Inferior Derecha</span></label>
+                </div>
+                <p class="text-xs text-center mt-4 text-gray-500">Recomendamos la esquina inferior derecha para no interferir con otros elementos.</p>
+                 <div class="mt-8 flex justify-between items-center">
+                    <button class="btn btn-secondary onboarding-back-btn" data-target="2">Atrás</button>
+                    <button class="btn btn-primary onboarding-next-btn" data-target="4">Siguiente</button>
+                </div>
+            </div>
+            <!-- Paso 4: Consejos y Finalización -->
+             <div id="onboarding-step-4" class="onboarding-step p-8">
+                <h3 class="text-2xl font-bold text-gray-800">¡Todo Listo!</h3>
+                <p class="text-gray-600 mt-1">Aquí tienes algunos consejos para sacarle el máximo provecho a MarticApp:</p>
+                <ul class="list-disc list-inside mt-4 space-y-2 text-sm text-gray-700">
+                    <li><b>Ratón avanzado:</b> Si tu ratón tiene botones extra, puedes configurarlos para que ejecuten tus atajos de teclado y tener a MarticApp a un solo clic.</li>
+                    <li><b>Personaliza tus transcripciones:</b> En la pestaña "Acciones", puedes elegir si quieres que la IA añada puntuación, corrija la gramática o elimine muletillas.</li>
+                    <li><b>Crea tus propias acciones:</b> En la "Biblioteca", puedes crear y editar tus propios comandos para la función de procesamiento de texto.</li>
+                     <li><b>Revisa tu historial:</b> Todas tus interacciones se guardan en la pestaña "Historial" para que puedas consultarlas cuando quieras.</li>
+                </ul>
+                 <div class="mt-8 flex justify-between items-center">
+                    <button class="btn btn-secondary onboarding-back-btn" data-target="3">Atrás</button>
+                    <button id="onboarding-finish-btn" class="btn btn-primary">Finalizar y Empezar a Usar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Vista de Login -->
+    <div id="login-view" class="view active items-center justify-center">
+        <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-8">Iniciar Sesión en MarticApp</h2>
+            <div id="login-error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 hidden" role="alert"></div>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="email-input" class="form-label">Email</label>
+                    <input type="email" name="email" id="email-input" class="form-input" required>
+                </div>
+                <div class="mb-6">
+                    <label for="password-input" class="form-label">Contraseña</label>
+                    <input type="password" name="password" id="password-input" class="form-input" required>
+                </div>
+                <div class="flex items-center justify-between">
+                    <button type="submit" class="btn btn-primary">Entrar</button>
+                    <a id="register-link" href="#" class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">¿No tienes cuenta? Regístrate</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Vista de Configuración -->
+    <div id="settings-view" class="view">
+        <aside class="w-64 bg-white p-4 border-r border-gray-200 flex flex-col">
+            <h1 class="text-2xl font-bold text-gray-800 px-2">MarticApp</h1>
+            <div class="mt-4 px-2">
+                <p class="text-sm font-semibold" id="user-name">Usuario</p>
+                <p class="text-xs text-gray-500" id="user-email">email@example.com</p>
+                <p class="text-xs text-green-600 font-semibold" id="user-plan">Plan Activo</p>
+                <button id="logout-btn" class="text-xs text-red-500 hover:underline mt-1">Cerrar Sesión</button>
+            </div>
+            <nav id="tab-nav" class="mt-8 space-y-2">
+                <button class="tab-button active" data-tab="tab-general"><i class="ph ph-gear"></i>General</button>
+                <button class="tab-button" data-tab="tab-actions"><i class="ph ph-keyboard"></i>Acciones y Atajos</button>
+                <button class="tab-button" data-tab="tab-library"><i class="ph ph-books"></i>Biblioteca</button>
+                <button class="tab-button" data-tab="tab-history"><i class="ph ph-clock-counter-clockwise"></i>Historial</button>
+                <button class="tab-button" data-tab="tab-analytics"><i class="ph ph-chart-line"></i>Analítica</button>
+            </nav>
+            <div class="mt-8 px-2">
+                <button id="sidebar-save-btn" class="btn btn-primary w-full">Guardar Cambios</button>
+            </div>
+            <!-- NUEVO: Pie de página de la barra lateral -->
+            <div class="mt-auto p-2 text-center border-t">
+                 <p class="text-xs text-gray-600">Versión <span id="app-version"></span></p>
+                 <p id="update-status-text" class="text-xs text-gray-500 mt-1">Buscando actualizaciones...</p>
+                 <button id="check-update-btn" class="text-xs text-indigo-600 hover:underline mt-1">Buscar actualizaciones</button>
+            </div>
+        </aside>
+        <main class="flex-1 p-8 overflow-y-auto">
+            <div id="tab-content-container" class="max-w-4xl mx-auto space-y-8">
+                <section id="tab-general" class="tab-content active space-y-8">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Configuración General</h2>
+                        <p class="text-gray-500 mt-1">Ajustes de audio, apariencia e inicio del sistema.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="p-6 bg-gray-50 rounded-lg border">
+                            <h3 class="font-semibold text-lg">Dispositivo de Audio</h3>
+                            <div class="mt-4">
+                                <label for="audio-device" class="form-label">Micrófono de Entrada</label>
+                                <div class="flex items-center space-x-2 mt-1">
+                                    <select id="audio-device" class="form-select flex-grow"></select>
+                                    <button id="test-audio-btn" class="btn btn-secondary whitespace-nowrap"><i class="ph-bold ph-microphone"></i><span>Probar</span></button>
+                                </div>
+                                <div id="visualizer-container" class="w-full h-2 bg-gray-200 rounded-md mt-3 hidden"><div id="visualizer-bar" class="h-2 bg-green-500 rounded-full" style="width: 0%; transition: width 0.1s;"></div></div>
+                            </div>
+                        </div>
+                        <div class="p-6 bg-gray-50 rounded-lg border">
+                            <h3 class="font-semibold text-lg">Apariencia y Comportamiento</h3>
+                            <div class="mt-4 space-y-4">
+                                <div class="flex items-center"><input id="launch-on-startup" type="checkbox" class="h-4 w-4 rounded"><label for="launch-on-startup" class="ml-2 text-sm">Abrir al iniciar el sistema</label></div>
+                                <div class="flex items-center"><input id="attenuate-audio" type="checkbox" class="h-4 w-4 rounded"><label for="attenuate-audio" class="ml-2 text-sm">Bajar volumen de otras apps al grabar</label></div>
+                                <div>
+                                    <label for="floating-icon-position" class="form-label">Posición del Icono</label>
+                                    <select id="floating-icon-position" class="form-select mt-1">
+                                        <option value="top-left">Superior Izquierda</option><option value="top-right">Superior Derecha</option><option value="bottom-left">Inferior Izquierda</option><option value="bottom-right">Inferior Derecha</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section id="tab-actions" class="tab-content space-y-8">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Acciones y Atajos</h2>
+                        <p class="text-gray-500 mt-1">Configura los atajos de teclado y el comportamiento de cada acción.</p>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="p-6 bg-gray-50 rounded-lg border space-y-4">
+                            <h3 class="font-semibold text-lg">Acción de Transcripción</h3>
+                            <div>
+                                <label class="form-label">Atajo de Teclado</label>
+                                <button id="smart-transcribe-hotkey" class="form-input text-left font-mono"></button>
+                                <div id="smart-transcribe-hotkey-error" class="text-red-600 text-xs mt-1 hidden"></div>
+                            </div>
+                            <!-- SECCIÓN RE-AÑADIDA -->
+                            <div id="transcription-options">
+                                <label class="form-label">Funciones Adicionales de IA</label>
+                                <div class="space-y-2 mt-2">
+                                    <div class="flex items-center"><input id="transcribe-add-punctuation" type="checkbox" class="h-4 w-4 rounded"><label for="transcribe-add-punctuation" class="ml-2 text-sm">Añadir puntuación</label></div>
+                                    <div class="flex items-center"><input id="transcribe-remove-fillers" type="checkbox" class="h-4 w-4 rounded"><label for="transcribe-remove-fillers" class="ml-2 text-sm">Eliminar muletillas</label></div>
+                                    <div class="flex items-center"><input id="transcribe-correct-grammar" type="checkbox" class="h-4 w-4 rounded"><label for="transcribe-correct-grammar" class="ml-2 text-sm">Corregir gramática</label></div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">Activar estas opciones puede aumentar ligeramente el tiempo de procesamiento.</p>
+                            </div>
+                            <div><label for="color-transcribe" class="form-label">Color de Grabación</label><input id="color-transcribe" type="color" class="mt-1 h-10 w-full"></div>
+                        </div>
+                        <div class="p-6 bg-gray-50 rounded-lg border space-y-4">
+                            <h3 class="font-semibold text-lg">Acción de Procesamiento IA</h3>
+                            <div>
+                                <label class="form-label">Atajo de Teclado</label>
+                                <button id="process-text-hotkey" class="form-input text-left font-mono"></button>
+                                <div id="process-text-hotkey-error" class="text-red-600 text-xs mt-1 hidden"></div>
+                            </div>
+                            <div><label for="active-prompt-name" class="form-label">Acción a Realizar</label><select id="active-prompt-name" class="form-select"></select></div>
+                            <div><label for="color-process-text" class="form-label">Color de Grabación</label><input id="color-process-text" type="color" class="mt-1 h-10 w-full"></div>
+                        </div>
+                    </div>
+                     <div class="p-6 bg-gray-50 rounded-lg border grid grid-cols-1 md:grid-cols-2 gap-8">
+                         <div>
+                             <h3 class="font-semibold text-lg">Comportamiento Final</h3>
+                             <label class="form-label mt-4">Al finalizar, la IA debe:</label>
+                             <div class="flex items-center space-x-4 mt-1">
+                                 <div class="flex items-center"><input id="final-action-paste" type="radio" name="final-action" value="paste" class="h-4 w-4"><label for="final-action-paste" class="ml-2 text-sm">Pegar resultado</label></div>
+                                 <div class="flex items-center"><input id="final-action-copy" type="radio" name="final-action" value="copy" class="h-4 w-4"><label for="final-action-copy" class="ml-2 text-sm">Copiar resultado</label></div>
+                             </div>
+                         </div>
+                         <div>
+                            <h3 class="font-semibold text-lg">Indicador Visual</h3>
+                            <label for="color-processing" class="form-label mt-4">Color de "Procesando"</label>
+                            <input id="color-processing" type="color" class="mt-1 h-10 w-full">
+                         </div>
+                    </div>
+                </section>
+                <section id="tab-library" class="tab-content space-y-8">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Biblioteca y Prompts</h2>
+                        <p class="text-gray-500 mt-1">Crea y gestiona tus propias instrucciones personalizadas para la IA.</p>
+                    </div>
+                    <div class="p-6 bg-gray-50 rounded-lg border space-y-4">
+                        <h3 class="font-semibold text-lg">Prompt Base de Transcripción</h3>
+                        <p id="prompt-transcribe-desc" class="text-sm text-gray-600">Esta es la instrucción principal para el formateo post-transcripción.</p>
+                        <textarea id="prompt-transcribe" class="form-textarea"></textarea>
+                    </div>
+                    <div class="p-6 bg-gray-50 rounded-lg border space-y-4">
+                        <h3 class="font-semibold text-lg">Biblioteca de Acciones de Procesamiento</h3>
+                        <div id="prompt-library-container" class="mt-4 space-y-6"></div>
+                        <button id="add-prompt-btn" class="btn btn-secondary mt-4"><i class="ph ph-plus"></i>Añadir Nueva Acción</button>
+                    </div>
+                </section>
+                <section id="tab-history" class="tab-content space-y-8">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Historial</h2>
+                        <p class="text-gray-500 mt-1">Busca y revisa todas tus interacciones pasadas.</p>
+                    </div>
+                    <!-- NUEVO: Menú de acciones del historial -->
+                    <div class="flex justify-between items-center">
+                        <div class="flex-grow mr-4">
+                            <input type="text" id="history-search" class="form-input" placeholder="Buscar en el historial...">
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-secondary"><i class="ph ph-dots-three"></i></button>
+                            <div class="dropdown-content">
+                                <button id="export-history-btn"><i class="ph ph-file-arrow-down mr-2"></i>Exportar Todo</button>
+                                <button id="clear-history-btn" class="text-red-600"><i class="ph ph-trash mr-2"></i>Vaciar Historial</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="history-container" class="space-y-3 max-h-[40vh] overflow-y-auto bg-gray-50 p-4 rounded-md border"></div>
+                </section>
+                 <section id="tab-analytics" class="tab-content space-y-8">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Tu Actividad con MarticApp</h2>
+                        <p class="text-gray-500 mt-1">Aquí tienes un resumen de cómo MarticApp te ha ayudado.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="p-6 bg-white rounded-lg border text-center">
+                            <p class="text-sm text-gray-500">Usos esta semana</p>
+                            <p id="analytics-week-uses" class="text-4xl font-bold text-indigo-600">0</p>
+                        </div>
+                         <div class="p-6 bg-white rounded-lg border text-center">
+                            <p class="text-sm text-gray-500">Días con MarticApp</p>
+                            <p id="analytics-days-with-app" class="text-4xl font-bold text-indigo-600">0</p>
+                        </div>
+                    </div>
+                    <div class="p-6 bg-gray-50 rounded-lg border">
+                        <h3 class="font-semibold text-lg text-center">Desglose de Palabras</h3>
+                        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                             <div>
+                                <p class="text-sm text-gray-500">Transcripción Directa</p>
+                                <p id="analytics-transcription-words" class="text-2xl font-semibold">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Procesamiento IA</p>
+                                <p id="analytics-processing-words" class="text-2xl font-semibold">0</p>
+                            </div>
+                             <div>
+                                <p class="text-sm text-gray-500">Promedio / Uso</p>
+                                <p id="analytics-average-words" class="text-2xl font-semibold">0</p>
+                            </div>
+                        </div>
+                        <div class="mt-6 border-t pt-4 text-center">
+                            <p class="text-lg font-bold text-gray-800">Total de Palabras: <span id="analytics-total-words" class="text-indigo-600">0</span></p>
+                        </div>
+                    </div>
+                     <div class="p-6 bg-indigo-50 rounded-lg border border-indigo-200 text-center">
+                        <i class="ph-bold ph-trophy text-4xl text-indigo-500 mx-auto"></i>
+                        <p id="analytics-fun-fact" class="mt-2 text-gray-700 italic">Cargando dato curioso...</p>
+                    </div>
+                </section>
+            </div>
+        </main>
+        <div id="save-bar" class="save-bar fixed bottom-0 left-0 right-0 bg-gray-800 p-4 shadow-lg flex justify-center items-center">
+            <p class="text-white font-semibold mr-4">Tienes cambios sin guardar</p>
+            <button id="save-btn" class="btn btn-primary">Guardar Cambios</button>
+        </div>
+    </div>
+    
+    <script>
+        const loginView = document.getElementById('login-view');
+        const settingsView = document.getElementById('settings-view');
+        const onboardingView = document.getElementById('onboarding-view');
+
+        const domElements = {
+            tabNav: document.getElementById('tab-nav'),
+            saveBar: document.getElementById('save-bar'),
+            saveBtn: document.getElementById('save-btn'),
+            sidebarSaveBtn: document.getElementById('sidebar-save-btn'),
+            launch: document.getElementById('launch-on-startup'),
+            attenuateAudio: document.getElementById('attenuate-audio'),
+            position: document.getElementById('floating-icon-position'),
+            finalActionPaste: document.getElementById('final-action-paste'),
+            finalActionCopy: document.getElementById('final-action-copy'),
+            activePromptName: document.getElementById('active-prompt-name'),
+            colorTranscribe: document.getElementById('color-transcribe'),
+            colorProcess: document.getElementById('color-process-text'),
+            colorProcessing: document.getElementById('color-processing'),
+            hotkeyTranscribe: document.getElementById('smart-transcribe-hotkey'),
+            hotkeyProcess: document.getElementById('process-text-hotkey'),
+            historyContainer: document.getElementById('history-container'),
+            historySearch: document.getElementById('history-search'),
+            audioDevice: document.getElementById('audio-device'),
+            testAudioBtn: document.getElementById('test-audio-btn'),
+            visualizerContainer: document.getElementById('visualizer-container'),
+            visualizerBar: document.getElementById('visualizer-bar'),
+            exportHistoryBtn: document.getElementById('export-history-btn'),
+            clearHistoryBtn: document.getElementById('clear-history-btn'),
+            promptTranscribe: document.getElementById('prompt-transcribe'),
+            promptLibraryContainer: document.getElementById('prompt-library-container'),
+            addPromptBtn: document.getElementById('add-prompt-btn'),
+            updateStatusText: document.getElementById('update-status-text'),
+            checkUpdateBtn: document.getElementById('check-update-btn'),
+            appVersion: document.getElementById('app-version'),
+            transcribeAddPunctuation: document.getElementById('transcribe-add-punctuation'),
+            transcribeRemoveFillers: document.getElementById('transcribe-remove-fillers'),
+            transcribeCorrectGrammar: document.getElementById('transcribe-correct-grammar'),
+        };
+        
+        let promptLibrary = [];
+        let currentConfig = {};
+
+        function showLoginView(errorMessage = '') {
+            onboardingView.classList.remove('active');
+            settingsView.classList.remove('active');
+            loginView.classList.add('active');
+            const loginError = document.getElementById('login-error');
+            loginError.textContent = errorMessage;
+            loginError.classList.toggle('hidden', !errorMessage);
+        }
+
+        function showSettingsView(user) {
+            loginView.classList.remove('active');
+            onboardingView.classList.remove('active');
+            settingsView.classList.add('active');
+            document.getElementById('user-name').textContent = user.nombre;
+            document.getElementById('user-email').textContent = user.email;
+            document.getElementById('user-plan').textContent = user.plan;
+            populateSettingsData();
+        }
+
+        function showOnboarding() {
+            loginView.classList.remove('active');
+            settingsView.classList.remove('active');
+            onboardingView.classList.add('active');
+            goToOnboardingStep(1);
+        }
+
+        function goToOnboardingStep(stepNumber) {
+            document.querySelectorAll('.onboarding-step').forEach(s => s.classList.remove('active'));
+            document.getElementById(`onboarding-step-${stepNumber}`).classList.add('active');
+        }
+
+        function showSaveBar() { domElements.saveBar.classList.add('visible'); }
+        function hideSaveBar() { domElements.saveBar.classList.remove('visible'); }
+        
+        function showTab(tabId) {
+            domElements.tabNav.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            const button = domElements.tabNav.querySelector(`[data-tab="${tabId}"]`);
+            if (button) button.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            const tabContent = document.getElementById(tabId);
+            if(tabContent) tabContent.classList.add('active');
+            
+            if (tabId === 'tab-analytics') {
+                updateAnalyticsUI();
+            }
+        }
+        
+        function renderPromptLibrary() {
+            domElements.promptLibraryContainer.innerHTML = '';
+            domElements.activePromptName.innerHTML = '';
+            if(!promptLibrary) promptLibrary = [];
+            promptLibrary.forEach((prompt, index) => {
+                const promptEl = document.createElement('div');
+                promptEl.className = 'p-4 border rounded-md bg-white';
+                promptEl.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <label class="form-label font-semibold">Nombre de la Acción</label>
+                        ${promptLibrary.length > 1 ? `<button data-index="${index}" class="btn btn-danger btn-sm delete-prompt-btn"><i class="ph ph-trash"></i></button>` : ''}
+                    </div>
+                    <input type="text" value="${prompt.name}" data-index="${index}" class="form-input prompt-name-input">
+                    <label class="form-label mt-2">Instrucción para la IA (Prompt)</label>
+                    <textarea data-index="${index}" class="form-textarea prompt-content-input">${prompt.prompt}</textarea>
+                `;
+                domElements.promptLibraryContainer.appendChild(promptEl);
+                const option = document.createElement('option');
+                option.value = prompt.name;
+                option.textContent = prompt.name;
+                domElements.activePromptName.appendChild(option);
+            });
+            
+            const handlePromptChange = (event) => {
+                const idx = Number(event.target.getAttribute('data-index'));
+                if (Number.isFinite(idx)) {
+                    if (event.target.classList.contains('prompt-name-input')) {
+                        promptLibrary[idx].name = event.target.value || `Acción ${idx+1}`;
+                    } else if (event.target.classList.contains('prompt-content-input')) {
+                        promptLibrary[idx].prompt = event.target.value;
+                    }
+                    showSaveBar();
+                    domElements.activePromptName.options[idx].textContent = promptLibrary[idx].name;
+                }
+            };
+
+            document.querySelectorAll('.prompt-name-input, .prompt-content-input').forEach(input => input.addEventListener('input', handlePromptChange));
+            document.querySelectorAll('.delete-prompt-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const idx = Number(e.currentTarget.getAttribute('data-index'));
+                    promptLibrary.splice(idx, 1);
+                    renderPromptLibrary();
+                    showSaveBar();
+                });
+             });
+        }
+
+        function setupHotkeyListeners(container = document) {
+            const attachCapture = (buttonEl) => {
+                const errorEl = document.getElementById(`${buttonEl.id}-error`);
+                buttonEl.addEventListener('click', () => {
+                    const prevHotkey = buttonEl.dataset.hotkey || '';
+                    buttonEl.textContent = 'Presiona una combinación... (Esc para cancelar)';
+                    if(errorEl) errorEl.classList.add('hidden');
+                    
+                    const keydownHandler = (e) => {
+                        e.preventDefault();
+                        if (e.key === 'Escape') {
+                            buttonEl.textContent = prevHotkey || 'Definir atajo';
+                            cleanup();
+                            return;
+                        }
+                    };
+
+                    const keyupHandler = (e) => {
+                        e.preventDefault();
+                        const parts = [];
+                        if (e.ctrlKey) parts.push('Control');
+                        if (e.shiftKey) parts.push('Shift');
+                        if (e.altKey) parts.push('Alt');
+                        if (e.metaKey) parts.push('Super');
+                        
+                        const key = e.key.toUpperCase();
+                        if (!['CONTROL', 'SHIFT', 'ALT', 'META', 'SUPER'].includes(key)) {
+                            parts.push(key.length === 1 ? key : e.code.replace('Key', ''));
+                        }
+
+                        if (parts.length > 1) {
+                            const combo = parts.join('+');
+                            buttonEl.dataset.hotkey = combo;
+                            buttonEl.textContent = combo;
+                            showSaveBar();
+                            cleanup();
+                        }
+                    };
+
+                    const cleanup = () => {
+                        window.removeEventListener('keydown', keydownHandler, true);
+                        window.removeEventListener('keyup', keyupHandler, true);
+                    };
+
+                    window.addEventListener('keydown', keydownHandler, true);
+                    window.addEventListener('keyup', keyupHandler, true);
+                });
+            };
+            container.querySelectorAll('[id*="-hotkey"]').forEach(attachCapture);
+        }
+
+        async function populateAudioDevices() {
+             try {
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const audioDevices = devices.filter(device => device.kind === 'audioinput');
+                domElements.audioDevice.innerHTML = '<option value="default">Por defecto</option>';
+                audioDevices.forEach(device => {
+                    if (device.deviceId) {
+                        const option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.textContent = device.label || `Micrófono ${domElements.audioDevice.options.length}`;
+                        domElements.audioDevice.appendChild(option);
+                    }
+                });
+            } catch (err) { 
+                console.error('Error al enumerar dispositivos:', err);
+            }
+        }
+
+        function filterHistory() {
+            const term = domElements.historySearch.value.toLowerCase().trim();
+            const cards = domElements.historyContainer.querySelectorAll('[data-hist-item]');
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(term) ? '' : 'none';
+            });
+        }
+
+        async function updateAnalyticsUI() {
+            const data = await window.electronAPI.getNewAnalyticsData();
+            if (!data) return;
+
+            document.getElementById('analytics-week-uses').textContent = data.usesThisWeek;
+            document.getElementById('analytics-days-with-app').textContent = data.daysWithApp;
+            document.getElementById('analytics-transcription-words').textContent = data.transcriptionWords.toLocaleString('es');
+            document.getElementById('analytics-processing-words').textContent = data.processingWords.toLocaleString('es');
+            document.getElementById('analytics-average-words').textContent = data.averageWords.toLocaleString('es');
+            document.getElementById('analytics-total-words').textContent = data.totalWords.toLocaleString('es');
+            document.getElementById('analytics-fun-fact').textContent = data.funFact;
+        }
+
+        function renderHistory(history) {
+            domElements.historyContainer.innerHTML = '';
+            (history || []).slice().reverse().forEach(item => {
+                const card = document.createElement('div');
+                card.setAttribute('data-hist-item','');
+                card.className = 'p-3 bg-white rounded border';
+                const d = new Date(item.date);
+                const textToCopy = item.output || '';
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="text-xs text-gray-500">${d.toLocaleString()}</div>
+                            <div class="font-semibold text-sm mt-1">${item.type || 'Interacción'}</div>
+                        </div>
+                        <button class="btn btn-secondary btn-sm copy-history-btn"><i class="ph ph-copy"></i></button>
+                    </div>
+                    <div class="text-sm mt-2 whitespace-pre-wrap">${textToCopy.slice(0, 500)}</div>
+                `;
+
+                card.querySelector('.copy-history-btn').addEventListener('click', () => {
+                    window.electronAPI.copyToClipboard(textToCopy);
+                    alert('Texto copiado al portapapeles.');
+                });
+
+                domElements.historyContainer.appendChild(card);
+            });
+        }
+
+
+        async function populateSettingsData() {
+            try {
+                const [config, history] = await Promise.all([
+                    window.electronAPI.getConfig(), window.electronAPI.getHistory()
+                ]);
+                
+                currentConfig = config;
+
+                domElements.launch.checked = config['launch-on-startup'];
+                domElements.attenuateAudio.checked = config['attenuate-audio'];
+                domElements.finalActionPaste.checked = config['final-action'] === 'paste';
+                domElements.finalActionCopy.checked = config['final-action'] === 'copy';
+                domElements.position.value = config['floating-icon-position'];
+                domElements.audioDevice.value = config['audio-device'] || 'default';
+                
+                domElements.colorTranscribe.value = config.colors.transcribe;
+                domElements.colorProcess.value = config.colors.processText;
+                domElements.colorProcessing.value = config.colors.processing;
+                
+                domElements.hotkeyTranscribe.textContent = config['smart-transcribe-hotkey'];
+                domElements.hotkeyTranscribe.dataset.hotkey = config['smart-transcribe-hotkey'];
+                domElements.hotkeyProcess.textContent = config['process-text-hotkey'];
+                domElements.hotkeyProcess.dataset.hotkey = config['process-text-hotkey'];
+                
+                const ts = config['transcription-settings'];
+                domElements.transcribeAddPunctuation.checked = ts.addPunctuation;
+                domElements.transcribeRemoveFillers.checked = ts.removeFillers;
+                domElements.transcribeCorrectGrammar.checked = ts.correctGrammar;
+
+                domElements.promptTranscribe.value = config.prompts.transcribeBase;
+                promptLibrary = config.prompts.library || [];
+                renderPromptLibrary();
+                domElements.activePromptName.value = config['active-prompt-name'];
+
+                renderHistory(history);
+
+                hideSaveBar();
+
+            } catch (error) {
+                console.error('Error fatal al cargar los datos:', error);
+            }
+        }
+
+        function saveData() {
+            const defaults = currentConfig.prompts;
+            const newConfig = {
+                ...currentConfig,
+                'launch-on-startup': domElements.launch.checked,
+                'attenuate-audio': domElements.attenuateAudio.checked,
+                'final-action': domElements.finalActionCopy.checked ? 'copy' : 'paste',
+                'active-prompt-name': domElements.activePromptName.value,
+                'floating-icon-position': domElements.position.value,
+                'audio-device': domElements.audioDevice.value,
+                'colors': {
+                    transcribe: domElements.colorTranscribe.value,
+                    processText: domElements.colorProcess.value,
+                    processing: domElements.colorProcessing.value,
+                },
+                'smart-transcribe-hotkey': domElements.hotkeyTranscribe.dataset.hotkey,
+                'process-text-hotkey': domElements.hotkeyProcess.dataset.hotkey,
+                'transcription-settings': {
+                    addPunctuation: domElements.transcribeAddPunctuation.checked,
+                    removeFillers: domElements.transcribeRemoveFillers.checked,
+                    correctGrammar: domElements.transcribeCorrectGrammar.checked,
+                },
+                'prompts': {
+                    transcribeBase: domElements.promptTranscribe.value.trim() || defaults.transcribeBase,
+                    library: promptLibrary.map(p => ({
+                        name: p.name,
+                        prompt: p.prompt.trim() || defaults.library[0].prompt
+                    }))
+                },
+                'hasCompletedOnboarding': true
+            };
+            window.electronAPI.saveConfig(newConfig);
+            alert('Configuración guardada.');
+            hideSaveBar();
+        }
+
+        function setupEventListeners() {
+            domElements.tabNav.addEventListener('click', (e) => {
+                const btn = e.target.closest('.tab-button');
+                if (!btn) return;
+                const tabId = btn.getAttribute('data-tab');
+                if (tabId) showTab(tabId);
+            });
+
+            const inputs = settingsView.querySelectorAll('input, select, textarea');
+            inputs.forEach(el => el.addEventListener('input', showSaveBar));
+            
+            domElements.addPromptBtn.addEventListener('click', () => {
+                const idx = promptLibrary.length + 1;
+                promptLibrary.push({ name: `Acción ${idx}`, prompt: '' });
+                renderPromptLibrary();
+                showSaveBar();
+            });
+
+            domElements.saveBtn.addEventListener('click', saveData);
+            domElements.sidebarSaveBtn.addEventListener('click', saveData);
+            domElements.historySearch.addEventListener('input', filterHistory);
+            domElements.testAudioBtn.addEventListener('click', () => window.electronAPI.toggleAudioTest(domElements.audioDevice.value));
+            
+            domElements.exportHistoryBtn.addEventListener('click', async () => {
+                const res = await window.electronAPI.exportHistory();
+                if (res && res.success) {
+                    alert('Historial exportado correctamente.');
+                } else {
+                    alert(res?.message || 'No se pudo exportar el historial.');
+                }
+            });
+
+            domElements.clearHistoryBtn.addEventListener('click', async () => {
+                if (confirm('¿Estás seguro de que quieres vaciar todo el historial? Esta acción no se puede deshacer.')) {
+                    await window.electronAPI.clearHistory();
+                    renderHistory([]); // Limpiar la UI inmediatamente
+                }
+            });
+
+            document.getElementById('login-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email-input').value.trim();
+                const password = document.getElementById('password-input').value;
+                const resp = await window.electronAPI.login({ email, password });
+
+                if (resp && resp.success) {
+                    if (resp.needsOnboarding) {
+                        const config = await window.electronAPI.getConfig();
+                        document.getElementById('onboarding-hotkey-transcribe').textContent = config['smart-transcribe-hotkey'];
+                        document.getElementById('onboarding-hotkey-transcribe').dataset.hotkey = config['smart-transcribe-hotkey'];
+                        document.getElementById('onboarding-hotkey-process').textContent = config['process-text-hotkey'];
+                        document.getElementById('onboarding-hotkey-process').dataset.hotkey = config['process-text-hotkey'];
+                        document.querySelector(`input[name="onboarding-icon-position"][value="${config['floating-icon-position']}"]`).checked = true;
+                        showOnboarding();
+                    } else {
+                        showSettingsView(resp.user);
+                    }
+                } else {
+                    showLoginView(resp?.message || 'No se pudo iniciar sesión.');
+                }
+            });
+
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                await window.electronAPI.logout();
+                showLoginView();
+            });
+
+            document.getElementById('register-link').addEventListener('click', () => window.electronAPI.openExternalLink('https://jdweblab.com/marticapp/register.php'));
+            
+            window.electronAPI.onTestFinished((isStarting) => {
+                domElements.visualizerContainer.style.display = isStarting ? 'block' : 'none';
+                const btnText = domElements.testAudioBtn.querySelector('span');
+                const btnIcon = domElements.testAudioBtn.querySelector('i');
+                if (btnText) btnText.textContent = isStarting ? 'Detener' : 'Probar';
+                if(btnIcon) {
+                    btnIcon.classList.toggle('ph-microphone', !isStarting);
+                    btnIcon.classList.toggle('ph-stop', isStarting);
+                }
+                if (!isStarting) domElements.visualizerBar.style.width = '0%';
+            });
+            window.electronAPI.onAudioData((volume) => domElements.visualizerBar.style.width = `${volume}%`);
+            window.electronAPI.onForceLogout(() => showLoginView('Tu sesión ha expirado.'));
+            
+            window.electronAPI.onUpdateStatus(({ status, message }) => {
+                let text = 'Buscando actualizaciones...';
+                if (status === 'available') text = 'Actualización disponible.';
+                if (status === 'downloaded') text = '¡Lista para instalar!';
+                if (status === 'not-available') text = 'Estás al día.';
+                if (status === 'error') text = `Error de actualización.`;
+                domElements.updateStatusText.textContent = text;
+            });
+
+            domElements.checkUpdateBtn.addEventListener('click', () => {
+                window.electronAPI.checkForUpdates();
+            });
+
+            document.getElementById('onboarding-start-btn').addEventListener('click', () => goToOnboardingStep(2));
+            document.querySelectorAll('.onboarding-next-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => goToOnboardingStep(e.target.dataset.target));
+            });
+             document.querySelectorAll('.onboarding-back-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => goToOnboardingStep(e.target.dataset.target));
+            });
+            document.getElementById('onboarding-finish-btn').addEventListener('click', async () => {
+                const config = await window.electronAPI.getConfig();
+                config['smart-transcribe-hotkey'] = document.getElementById('onboarding-hotkey-transcribe').dataset.hotkey;
+                config['process-text-hotkey'] = document.getElementById('onboarding-hotkey-process').dataset.hotkey;
+                config['floating-icon-position'] = document.querySelector('input[name="onboarding-icon-position"]:checked').value;
+                config.hasCompletedOnboarding = true;
+                window.electronAPI.saveConfig(config);
+                window.electronAPI.completeOnboarding();
+                
+                const session = await window.electronAPI.getUserSession();
+                showSettingsView(session.user);
+            });
+
+            window.electronAPI.onSessionActive((session) => {
+                if(session.isLoggedIn) {
+                    showSettingsView(session.user);
+                }
+            });
+
+            setupHotkeyListeners(document);
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await populateAudioDevices();
+            setupEventListeners();
+            
+            const version = await window.electronAPI.getAppVersion();
+            domElements.appVersion.textContent = version;
+
+            const session = await window.electronAPI.getUserSession();
+            if (session.isLoggedIn) {
+                showSettingsView(session.user);
+            } else {
+                showLoginView();
+            }
+        });
+    </script>
+</body>
+</html>
+

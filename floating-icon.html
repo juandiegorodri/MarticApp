@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        :root { --mic-color: #e5e7eb; }
+        body { 
+            margin: 0; 
+            background-color: transparent; 
+            overflow: hidden; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100vw;
+            height: 100vh;
+        }
+        .mic-icon { 
+            width: 30px; 
+            height: 30px; 
+            color: var(--mic-color); 
+            transition: all .2s ease-in-out; 
+            filter: drop-shadow(0 0 3px rgba(0,0,0,.7)); 
+        }
+        .mic-icon.recording { transform: scale(1.2); }
+        .mic-icon.processing { animation: processing-pulse 1s infinite; }
+        @keyframes processing-pulse { 50% { opacity: .6; } }
+    </style>
+</head>
+<body>
+    <svg id="mic" class="mic-icon idle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2h-2v2a9 9 0 0 0 8 8.94V24h-4v-2h10v2h-4v-3.06A9 9 0 0 0 21 12v-2h-2z"></path>
+    </svg>
+    <script>
+        const micIcon = document.getElementById('mic');
+        const root = document.documentElement;
+
+        let mediaRecorder;
+        let audioContext;
+        let stream;
+        let recordedChunks = [];
+
+        window.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            window.electronAPI.showContextMenu();
+        });
+
+        window.electronAPI.onStartRecording(async ({ deviceId }) => {
+            try {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                stream = await navigator.mediaDevices.getUserMedia({
+                    audio: { deviceId: deviceId === 'default' ? undefined : deviceId, echoCancellation: true }
+                });
+
+                recordedChunks = [];
+                mediaRecorder = new MediaRecorder(stream, { audioBitsPerSecond: 64000 });
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) recordedChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+                    audioBlob.arrayBuffer().then(arrayBuffer => {
+                        window.electronAPI.sendAudio(arrayBuffer);
+                    });
+                    if (audioContext) audioContext.close();
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorder.start();
+
+                audioContext = new AudioContext();
+                const source = audioContext.createMediaStreamSource(stream);
+                const analyser = audioContext.createAnalyser();
+                analyser.fftSize = 512;
+                source.connect(analyser);
+                
+                function drawVisualization() {
+                    if (!mediaRecorder || mediaRecorder.state !== 'recording') return;
+                    requestAnimationFrame(drawVisualization);
+                    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = 0;
+                    dataArray.forEach(value => sum += value);
+                    const avg = sum / dataArray.length;
+                    const volume = (avg / 128) * 100;
+                    window.electronAPI.sendVisualizationData(volume);
+                }
+                drawVisualization();
+
+            } catch (err) {
+                console.error('[Recorder-ERROR] No se pudo iniciar la grabación:', err);
+                window.electronAPI.sendAudio(new ArrayBuffer(0)); // Enviar buffer vacío para finalizar la sesión
+            }
+        });
+
+        window.electronAPI.onStopRecording(() => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+        });
+
+        window.electronAPI.onUpdateStatus(({ status, color }) => {
+            micIcon.className = 'mic-icon';
+            micIcon.classList.add(status);
+            root.style.setProperty('--mic-color', status === 'idle' ? '#e5e7eb' : color);
+        });
+    </script>
+</body>
+</html>
+

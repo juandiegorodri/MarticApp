@@ -1,0 +1,44 @@
+{
+  "name": "MarticApp",
+  "version": "4.2.0",
+  "description": "Transcribe y procesa texto usando IA con atajos de teclado configurables.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "rebuild": "electron-rebuild",
+    "build": "electron-builder --publish always"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@electron/rebuild": "^3.6.0",
+    "electron": "^29.1.5",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "electron-log": "^5.1.2",
+    "electron-store": "^8.1.0",
+    "electron-updater": "^6.1.7",
+    "loudness": "^0.4.1",
+    "node-fetch": "^2.6.7",
+    "robotjs": "^0.6.0"
+  },
+  "build": {
+    "appId": "com.marticapp.desktop",
+    "productName": "MarticApp",
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "publish": {
+      "provider": "generic",
+      "url": "https://jdweblab.com/marticapp/updates"
+    }
+  }
+}
+
